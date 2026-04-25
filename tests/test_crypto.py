@@ -1,6 +1,13 @@
 import unittest
 
-from me_chat.crypto import CryptoError, derive_room_key, open_sealed, seal
+from me_chat.crypto import (
+    CryptoError,
+    derive_room_key,
+    derive_user_password_hash,
+    open_sealed,
+    seal,
+    verify_user_password,
+)
 
 
 class CryptoTests(unittest.TestCase):
@@ -20,6 +27,14 @@ class CryptoTests(unittest.TestCase):
         )
         with self.assertRaises(CryptoError):
             open_sealed(key, tampered, b"aad")
+
+    def test_verify_user_password_rejects_invalid_base64(self):
+        self.assertFalse(verify_user_password("pw", "not-base64", "not-base64"))
+
+    def test_verify_user_password_roundtrip(self):
+        salt, digest = derive_user_password_hash("pw")
+        self.assertTrue(verify_user_password("pw", salt, digest))
+        self.assertFalse(verify_user_password("wrong", salt, digest))
 
 
 if __name__ == "__main__":

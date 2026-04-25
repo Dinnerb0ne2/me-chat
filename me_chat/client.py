@@ -4,6 +4,7 @@ import argparse
 import getpass
 import socket
 import ssl
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -132,7 +133,13 @@ class ChatConnection:
 
 def build_client_ssl_context(cafile: Path | None, insecure: bool) -> ssl.SSLContext:
     if insecure:
-        ctx = ssl._create_unverified_context()
+        print(
+            "[SECURITY WARNING] TLS certificate verification is disabled (--insecure).",
+            file=sys.stderr,
+        )
+        ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
         ctx.minimum_version = ssl.TLSVersion.TLSv1_3
         return ctx
     ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)

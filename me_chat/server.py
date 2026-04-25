@@ -142,7 +142,7 @@ class ChatServer:
                     ts = frame.payload.get("ts")
                     if not all(isinstance(v, str) for v in (ciphertext, nonce, mac)):
                         raise ProtocolError("invalid encrypted payload")
-                    if isinstance(ts, bool) or not isinstance(ts, int):
+                    if type(ts) is not int:
                         raise ProtocolError("invalid timestamp")
                     if len(ciphertext) > 65536 or len(nonce) > 256 or len(mac) > 256:
                         raise ProtocolError("payload too large")
@@ -203,7 +203,6 @@ def run_server(host: str, port: int, certfile: Path, keyfile: Path, users_path: 
     server = ChatServer(users_path=users_path)
     context = build_server_ssl_context(certfile=certfile, keyfile=keyfile)
     with socket.create_server((host, port), backlog=256, reuse_port=False) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         LOG.info("server listening on %s:%d", host, port)
         while True:
             client, addr = sock.accept()

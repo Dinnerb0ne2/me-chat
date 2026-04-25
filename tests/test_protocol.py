@@ -1,7 +1,7 @@
 import io
 import unittest
 
-from me_chat.protocol import Frame, ProtocolError, parse_json_line, read_line_limited
+from me_chat.protocol import MAX_FRAME_BYTES, Frame, ProtocolError, parse_json_line, read_line_limited
 
 
 class ProtocolTests(unittest.TestCase):
@@ -19,6 +19,16 @@ class ProtocolTests(unittest.TestCase):
         reader = io.BytesIO(b'{"type":"ping"}\n')
         line = read_line_limited(reader)
         self.assertEqual(line, b'{"type":"ping"}')
+
+    def test_read_line_limited_rejects_oversized(self):
+        reader = io.BytesIO((b"a" * (MAX_FRAME_BYTES + 1)) + b"\n")
+        with self.assertRaises(ProtocolError):
+            read_line_limited(reader)
+
+    def test_read_line_limited_requires_newline(self):
+        reader = io.BytesIO(b'{"type":"ping"}')
+        with self.assertRaises(ProtocolError):
+            read_line_limited(reader)
 
 
 if __name__ == "__main__":

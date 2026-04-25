@@ -11,11 +11,11 @@ from urllib.parse import parse_qs, urlparse
 
 
 HTML_PAGE = """<!doctype html>
-<html lang=\"zh-CN\">
+<html lang=\"en\">
 <head>
   <meta charset=\"utf-8\"/>
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>
-  <title>me-chat secure web ui</title>
+  <title>me-chat 安全聊天界面</title>
   <style>
     :root { color-scheme: dark; }
     body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: #0f172a; color: #e2e8f0; }
@@ -32,7 +32,7 @@ HTML_PAGE = """<!doctype html>
 </head>
 <body>
   <div class=\"wrap\">
-    <h1>me-chat secure room</h1>
+    <h1>me-chat 安全聊天室</h1>
     <div id=\"log\"></div>
     <form id=\"sendForm\">
       <input id=\"message\" autocomplete=\"off\" placeholder=\"输入消息并回车\" maxlength=\"2000\" />
@@ -88,6 +88,8 @@ HTML_PAGE = """<!doctype html>
 </body>
 </html>
 """
+
+MAX_WEBUI_PAYLOAD_SIZE = 128 * 1024
 
 
 @dataclass
@@ -159,7 +161,7 @@ class _Handler(BaseHTTPRequestHandler):
             size = int(self.headers.get("Content-Length", "0"))
         except ValueError:
             size = 0
-        if size < 0 or size > 128 * 1024:
+        if size < 0 or size > MAX_WEBUI_PAYLOAD_SIZE:
             self._json({"error": "payload too large"}, status=HTTPStatus.BAD_REQUEST)
             return
         raw = self.rfile.read(size)
@@ -179,7 +181,7 @@ class _Handler(BaseHTTPRequestHandler):
             return
         self._json({"ok": True})
 
-    def log_message(self, format: str, *args) -> None:  # noqa: A003
+    def log_message(self, fmt: str, *args) -> None:
         return
 
 
